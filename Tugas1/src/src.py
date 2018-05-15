@@ -1,9 +1,7 @@
-import requests
 import mechanicalsoup
 import json
 import html
 import os
-import pprint
 from bs4 import BeautifulSoup
 
 fileJson = "hasilJson.json"

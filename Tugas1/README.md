@@ -111,7 +111,7 @@ Preprocessing contohnya :
   12. cPhase      => Count Phase, adalah jumlah fase waktu tiba gelombang gempa yang digunakan.
   13. Region      => Wilayah
 
-  ##Contoh JSON structnya
+  ## Contoh JSON structnya
   ```
   {
     "1": {
@@ -146,3 +146,13 @@ Preprocessing contohnya :
     }
   }
   ```
+
+
+# Screenshot
+  ![alt text](screenshots/ss1.png "Scraping...")
+
+# Reference
+  Saya menggunakan Python untuk membuat aplikasi ini dengan beberapa kakas tambahan yaitu:
+  - mechanicalsoup , https://github.com/MechanicalSoup/MechanicalSoup
+  - BeautifulSoup , https://www.crummy.com/software/BeautifulSoup/bs4/doc/
+  
