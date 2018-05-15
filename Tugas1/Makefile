@@ -1,7 +1,9 @@
 all: clean build run
 
-clean: # remove data and binary folder
+clean: 
+	@rm -f data/hasilJson.json
 
 build: # compile to binary (if you use interpreter, then do not implement it)
 
-run: # run your binary
+run: 
+	@cd data && python ../src/src.py < ../src/inputIndonesia.txt
