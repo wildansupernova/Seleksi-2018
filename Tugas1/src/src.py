@@ -3,8 +3,35 @@ import json
 import html
 import os
 from bs4 import BeautifulSoup
-
+from datetime import timedelta
+from datetime import datetime
+import copy
 fileJson = "hasilJson.json"
+
+
+
+def hitungPembagianTahun(fromDate,toDate):
+    """
+    fromDate: datetime object
+    toDate: datetime object
+    
+    ret: list of list datetime 
+    """
+    hasil = []
+    boundYear = timedelta(365)
+    satuHari =  timedelta(1)
+
+    now = datetime(fromDate.year,fromDate.month,fromDate.day)
+    while (now<=toDate):
+        if( now + boundYear <= toDate ):
+            tup = (now,now+boundYear)
+            hasil.append(tup)
+            now = now + boundYear + satuHari
+        else:
+            tup = (now,toDate)
+            hasil.append(tup)
+            now = toDate+satuHari
+    return hasil
 
 
 def getNumberOfPage(soup):
@@ -24,8 +51,8 @@ def openJson(filename):
         with open(filename) as json_file:  
             data = json.load(json_file)
             return data
-    except Exception:
-        data={}
+    except Exception as detail:
+        data=[]
         return data
 
 def saveJson(filename,jsonObj):
@@ -58,7 +85,7 @@ def saveAllDataInSoup(soup):
         temp = {}
         for j in range(0,len(dataColoms)):
             temp[colomNames[j]] = dataColoms[j].text
-        data[i+n] = temp
+        data.append(temp)
 
     #save to json
     saveJson(fileJson,data)
@@ -90,57 +117,91 @@ maxDepth = input("Maximum Depth(Km) : ")
 print()
 ###################################
 
-####Login ke Repo gempa Indonesia
-loginUrl = "http://repogempa.bmkg.go.id/login.php"
-
-br = mechanicalsoup.StatefulBrowser()
-br.open(loginUrl)
-
-br.select_form()
-br["userid"] = "bmkg"
-br["passwd"] = "g3mp4Bumi"
-br.submit_selected()
-##################################
-
-####Memasukkan detail data scraping dari use ke form
-br.select_form()
-br['start_day'] = startDay[0]
-br['start_month'] = startDay[1]
-br['start_year'] = startDay[2]
-br['end_day'] = endDay[0]
-br['end_month'] = endDay[1]
-br['end_year'] = endDay[2]
-br['top_lat'] = topLatitude
-br['bot_lat'] = bottomLatitude
-br['right_long'] = rightLongitude
-br['left_long'] = leftLongitude
-br['min_mag'] = minSR
-br['max_mag'] = maxSR
-br['min_depth'] = minDepth
-br['max_depth'] = maxDepth
-br.submit_selected(btnName="Submit")
-##################################
-
-####Ancang2 Scraping:Inisiasi
-counterData = 0
-soup = br.get_current_page()
-totalPage = getNumberOfPage(soup)
-data = {}
-rootUrl = os.path.dirname(br.get_url())+"/"
-##################################
+####Inisiasi Pembagian Tahun
+fromDate = datetime(int(startDay[2]),int(startDay[1]),int(startDay[0]))
+toDate = datetime(int(endDay[2]),int(endDay[1]),int(endDay[0]))
+listTahun = hitungPembagianTahun(fromDate,toDate)
+######
 
 
-####Mulai Scraping
-for i in range(1,totalPage+1):
-    print("Page "+str(i)) #give status
-    saveAllDataInSoup(soup)
-    #updating browser or br link to next page
-    listLink = soup.select("table table table table")[1].select("a")
-    nextLink = listLink[len(listLink)-2]['href']
-    br.open(rootUrl+nextLink)
+for dateE in listTahun:
+    #### Initiate Tanggal
+
+    startDay = str(dateE[0].day)
+    startMonth = str(dateE[0].month)
+    startYear = str(dateE[0].year)
+
+    endDay = str(dateE[1].day)
+    endMonth = str(dateE[1].month)
+    endYear = str(dateE[1].year)
+    tanggal = startDay+"/"+startMonth+"/"+startYear + " to " + endDay+"/"+endMonth+"/"+endYear
+
+    print(tanggal)
+
+    ####Login ke Repo gempa Indonesia
+    print("Log in to repogempa .........")
+
+    loginUrl = "http://repogempa.bmkg.go.id/login.php"
+
+    br = mechanicalsoup.StatefulBrowser()
+    br.open(loginUrl)
+
+    br.select_form()
+    br["userid"] = "bmkg"
+    br["passwd"] = "g3mp4Bumi"
+    br.submit_selected()
+    ##################################
+
+
+
+
+    ####Memasukkan detail data scraping dari use ke form
+    print("Input necessary data .........")
+
+    br.select_form()
+    br['start_day'] = startDay
+    br['start_month'] = startMonth
+    br['start_year'] = startYear
+    br['end_day'] = endDay
+    br['end_month'] = endMonth
+    br['end_year'] = endYear
+    br['top_lat'] = topLatitude
+    br['bot_lat'] = bottomLatitude
+    br['right_long'] = rightLongitude
+    br['left_long'] = leftLongitude
+    br['min_mag'] = minSR
+    br['max_mag'] = maxSR
+    br['min_depth'] = minDepth
+    br['max_depth'] = maxDepth
+    br.submit_selected(btnName="Submit")
+    ##################################
+
+    ####Ancang2 Scraping:Inisiasi
+    counterData = 0
     soup = br.get_current_page()
-#################
+    totalPage = getNumberOfPage(soup)
+    data = {}
+    rootUrl = os.path.dirname(br.get_url())+"/"
+    ##################################
 
+    print("Mulai Scraping .........")
+
+    ####Mulai Scraping
+    for i in range(1,totalPage+1):
+        print(tanggal + " Page "+str(i)) #give status
+		# Open a file
+		# fo = open("foo.html", "w")
+		# fo.write(soup);
+
+		# # Close opend file
+		# fo.close()
+        saveAllDataInSoup(soup)
+        #updating browser or br link to next page
+        listLink = soup.select("table table table table")[1].select("a")
+        nextLink = listLink[len(listLink)-2]['href']
+        br.open(rootUrl+nextLink)
+        soup = br.get_current_page()
+    #################
 
 ####Prettify Json
 prettifySaveJson(fileJson)

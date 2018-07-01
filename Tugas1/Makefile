@@ -1,7 +1,6 @@
-all: clean build run
+all: build run
 
 clean: 
-	@rm -f data/hasilJson.json
 
 build: # compile to binary (if you use interpreter, then do not implement it)
 
